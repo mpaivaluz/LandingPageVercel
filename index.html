@@ -220,6 +220,83 @@
             color: var(--gold);
         }
 
+        /* ---------- Urgency card (vagas + countdown) ---------- */
+        .urgency-card {
+            width: 100%;
+            max-width: 420px;
+            background: linear-gradient(180deg, rgba(92, 22, 48, 0.55) 0%, rgba(58, 15, 31, 0.55) 100%);
+            border: 1px solid var(--card-border);
+            border-radius: 14px;
+            padding: 14px 18px;
+            margin-top: 18px;
+        }
+
+        .urgency-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 10px;
+        }
+
+        .urgency-spots {
+            font-size: 12.5px;
+            font-weight: 700;
+            color: var(--gold-light);
+        }
+
+        .urgency-spots strong {
+            color: #ff9f7a;
+        }
+
+        .urgency-bar-track {
+            width: 100%;
+            height: 5px;
+            background: rgba(0, 0, 0, 0.4);
+            border-radius: 999px;
+            margin: 9px 0 12px;
+            overflow: hidden;
+        }
+
+        .urgency-bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--gold-dark), #ff9f7a);
+            border-radius: 999px;
+            transition: width 0.6s linear;
+        }
+
+        .countdown-label {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--gold-light);
+            letter-spacing: 0.3px;
+            text-transform: uppercase;
+        }
+
+        .countdown-digits {
+            display: flex;
+            gap: 4px;
+            font-family: 'Inter', sans-serif;
+            font-variant-numeric: tabular-nums;
+        }
+
+        .countdown-digits span {
+            background: rgba(0, 0, 0, 0.35);
+            color: var(--gold);
+            font-weight: 800;
+            font-size: 14px;
+            padding: 3px 6px;
+            border-radius: 6px;
+            min-width: 26px;
+            text-align: center;
+        }
+
+        .countdown-digits .sep {
+            background: none;
+            padding: 3px 0;
+            color: var(--gold-light);
+            min-width: auto;
+        }
+
         /* ---------- Section shared ---------- */
         section {
             padding: 52px 0;
@@ -551,6 +628,21 @@
                     QUERO ENTRAR NO GRUPO VIP
                 </a>
                 <p class="cta-micro">🔒 Entrada gratuita &nbsp;•&nbsp; Ofertas direto no WhatsApp</p>
+
+                <div class="urgency-card" data-urgency>
+                    <div class="urgency-row">
+                        <span class="urgency-spots">🚨 Restam <strong class="spots-count">--</strong> vagas nesta leva</span>
+                    </div>
+                    <div class="urgency-bar-track">
+                        <div class="urgency-bar-fill" style="width: 100%"></div>
+                    </div>
+                    <div class="urgency-row">
+                        <span class="countdown-label">⏳ Esgota em</span>
+                        <div class="countdown-digits" aria-live="polite">
+                            <span class="cd-m">00</span><span class="sep">:</span><span class="cd-s">00</span>
+                        </div>
+                    </div>
+                </div>
             </div>
 
             <p class="proof-badge">🔥 <strong>+ de 10.000</strong> pessoas já estão economizando!</p>
@@ -649,6 +741,21 @@
                     </svg>
                     ENTRAR NO GRUPO VIP
                 </a>
+
+                <div class="urgency-card" data-urgency>
+                    <div class="urgency-row">
+                        <span class="urgency-spots">🚨 Restam <strong class="spots-count">--</strong> vagas nesta leva</span>
+                    </div>
+                    <div class="urgency-bar-track">
+                        <div class="urgency-bar-fill" style="width: 100%"></div>
+                    </div>
+                    <div class="urgency-row">
+                        <span class="countdown-label">⏳ Esgota em</span>
+                        <div class="countdown-digits" aria-live="polite">
+                            <span class="cd-m">00</span><span class="sep">:</span><span class="cd-s">00</span>
+                        </div>
+                    </div>
+                </div>
             </div>
             <p class="trust-line">🔒 Grupo gratuito · não pedimos senha nem cartão</p>
         </div>
@@ -690,6 +797,32 @@
                 });
             }
         });
+
+        // Ciclo de urgência (vagas + contagem) fixo a cada 10 minutos, alinhado ao relógio
+        // para que todos os visitantes vejam exatamente o mesmo estado ao mesmo tempo.
+        var CYCLE_MS = 10 * 60 * 1000;
+        var SPOTS_START = 40;
+        var SPOTS_MIN = 3;
+        function updateUrgency() {
+            var now = Date.now();
+            var elapsed = now % CYCLE_MS;
+            var diff = CYCLE_MS - elapsed;
+            var progress = elapsed / CYCLE_MS;
+
+            var m = String(Math.floor(diff / 60000)).padStart(2, '0');
+            var s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+            var spotsLeft = Math.max(SPOTS_MIN, Math.round(SPOTS_START - (SPOTS_START - SPOTS_MIN) * progress));
+            var pct = Math.max(0, 100 - progress * 100);
+
+            document.querySelectorAll('[data-urgency]').forEach(function (card) {
+                card.querySelector('.cd-m').textContent = m;
+                card.querySelector('.cd-s').textContent = s;
+                card.querySelector('.spots-count').textContent = spotsLeft;
+                card.querySelector('.urgency-bar-fill').style.width = pct + '%';
+            });
+        }
+        updateUrgency();
+        setInterval(updateUrgency, 1000);
     </script>
 </body>
 
