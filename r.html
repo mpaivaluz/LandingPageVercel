@@ -47,8 +47,7 @@
         const slug = location.pathname.replace(/^\/+|\/+$/g, '');
 
         function fail() {
-            document.getElementById('spin').style.display = 'none';
-            document.getElementById('txt').innerHTML = 'Link não encontrado. <a href="/">Ir para o início</a>';
+            location.replace('/esgotado.html');
         }
 
         (async () => {
