@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Solicitar Produto | Achados Perfume</title>
+    <link rel="icon" href="fotoLP.png">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --black: #0c0a0b;
+            --gold: #d8b46a;
+            --gold-light: #f0dfb0;
+            --gold-dark: #a9812f;
+            --offwhite: #f7f1e6;
+            --text-muted: #cabfab;
+            --card-bg: rgba(255, 255, 255, 0.045);
+            --card-border: rgba(216, 180, 106, 0.22);
+            --ok: #25d366;
+            --err: #ff6b6b;
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: radial-gradient(circle at top, #3a0f1f 0%, var(--black) 60%);
+            color: var(--offwhite);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px 20px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        .card {
+            width: 100%;
+            max-width: 460px;
+            background: var(--card-bg);
+            border: 1px solid var(--card-border);
+            border-radius: 20px;
+            padding: 32px 24px;
+        }
+
+        h1 {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 34px;
+            line-height: 1.15;
+            text-align: center;
+            margin-bottom: 8px;
+        }
+
+        h1 em { font-style: normal; color: var(--gold); }
+
+        .sub {
+            text-align: center;
+            color: var(--text-muted);
+            font-size: 14px;
+            margin-bottom: 24px;
+        }
+
+        label {
+            display: block;
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--gold-light);
+            margin: 16px 0 6px;
+        }
+
+        input {
+            width: 100%;
+            padding: 14px 16px;
+            font: inherit;
+            font-size: 16px;
+            color: var(--offwhite);
+            background: rgba(0, 0, 0, 0.35);
+            border: 1px solid var(--card-border);
+            border-radius: 12px;
+            outline: none;
+        }
+
+        input:focus { border-color: var(--gold); }
+
+        button {
+            width: 100%;
+            margin-top: 24px;
+            padding: 16px;
+            font: inherit;
+            font-size: 16px;
+            font-weight: 700;
+            color: #1a1206;
+            background: linear-gradient(135deg, var(--gold-light), var(--gold) 50%, var(--gold-dark));
+            border: 0;
+            border-radius: 12px;
+            cursor: pointer;
+        }
+
+        button:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        .msg {
+            margin-top: 16px;
+            text-align: center;
+            font-size: 14px;
+            min-height: 20px;
+        }
+
+        .msg.ok { color: var(--ok); }
+        .msg.err { color: var(--err); }
+
+        .back {
+            display: block;
+            margin-top: 18px;
+            text-align: center;
+            font-size: 13px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+    <main class="card">
+        <h1>Solicite seu <em>perfume</em></h1>
+        <p class="sub">Preencha os dados e avisaremos quando encontrarmos a melhor oferta.</p>
+
+        <form id="form" novalidate>
+            <label for="nome">Nome</label>
+            <input id="nome" name="nome" type="text" autocomplete="name" placeholder="Seu nome" required>
+
+            <label for="produto">Perfume</label>
+            <input id="produto" name="produto" type="text" placeholder="Ex: Sauvage Dior 100ml" required>
+
+            <label for="telefone">Telefone (WhatsApp)</label>
+            <input id="telefone" name="telefone" type="tel" inputmode="numeric" autocomplete="tel" placeholder="(11) 99999-9999" required>
+
+            <button id="btn" type="submit">Confirmar solicitação</button>
+            <p id="msg" class="msg" role="status"></p>
+        </form>
+
+        <a class="back" href="index.html">← Voltar</a>
+    </main>
+
+    <script>
+        const API_URL = 'https://bot.miguelluz.com.br/api/promocoes';
+        const form = document.getElementById('form');
+        const btn = document.getElementById('btn');
+        const msg = document.getElementById('msg');
+        const telInput = document.getElementById('telefone');
+
+        function setMsg(text, type) {
+            msg.textContent = text;
+            msg.className = 'msg ' + (type || '');
+        }
+
+        // Máscara visual (11) 99999-9999
+        telInput.addEventListener('input', () => {
+            const d = telInput.value.replace(/\D/g, '').slice(0, 11);
+            let out = d;
+            if (d.length > 6) out = `(${d.slice(0, 2)}) ${d.slice(2, 7)}-${d.slice(7)}`;
+            else if (d.length > 2) out = `(${d.slice(0, 2)}) ${d.slice(2)}`;
+            else if (d.length > 0) out = `(${d}`;
+            telInput.value = out;
+        });
+
+        form.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const nome = form.nome.value.trim();
+            const produto = form.produto.value.trim();
+            let telefone = telInput.value.replace(/\D/g, '');
+
+            if (!nome || !produto) return setMsg('Preencha nome e perfume.', 'err');
+            if (telefone.length < 10 || telefone.length > 11) return setMsg('Telefone inválido. Use DDD + número.', 'err');
+            if (!telefone.startsWith('55')) telefone = '55' + telefone;
+
+            btn.disabled = true;
+            setMsg('Enviando...');
+            try {
+                const res = await fetch(API_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ nome, produto, telefone })
+                });
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+                setMsg('Solicitação enviada com sucesso! ✅', 'ok');
+                form.reset();
+            } catch (err) {
+                setMsg('Não foi possível enviar. Tente novamente.', 'err');
+            } finally {
+                btn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>
