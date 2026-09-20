@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="robots" content="noindex">
+    <title>Redirecionando... | Achados Perfume</title>
+    <link rel="icon" href="/fotoLP.png">
+    <style>
+        body {
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 14px;
+            font-family: system-ui, sans-serif;
+            background: #0c0a0b;
+            color: #f7f1e6;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spin {
+            width: 34px;
+            height: 34px;
+            border: 3px solid rgba(216, 180, 106, 0.25);
+            border-top-color: #d8b46a;
+            border-radius: 50%;
+            animation: s 0.8s linear infinite;
+        }
+
+        @keyframes s { to { transform: rotate(360deg); } }
+
+        a { color: #d8b46a; }
+    </style>
+</head>
+
+<body>
+    <div class="spin" id="spin"></div>
+    <p id="txt">Redirecionando...</p>
+
+    <script>
+        const API = 'https://bot.miguelluz.com.br/api/links/';
+        const slug = location.pathname.replace(/^\/+|\/+$/g, '');
+
+        function fail() {
+            document.getElementById('spin').style.display = 'none';
+            document.getElementById('txt').innerHTML = 'Link não encontrado. <a href="/">Ir para o início</a>';
+        }
+
+        (async () => {
+            if (!slug) return fail();
+            try {
+                const res = await fetch(API + encodeURIComponent(slug));
+                if (!res.ok) throw new Error('HTTP ' + res.status);
+
+                // Aceita JSON ({ url } / { link } / { original }) ou texto puro com a URL
+                const raw = await res.text();
+                let url = raw.trim();
+                try {
+                    const data = JSON.parse(raw);
+                    url = typeof data === 'string' ? data : (data.url || data.link || data.original || data.originalUrl);
+                } catch (_) { }
+
+                if (!/^https?:\/\//i.test(url || '')) throw new Error('URL inválida');
+                location.replace(url);
+            } catch (e) {
+                fail();
+            }
+        })();
+    </script>
+</body>
+
+</html>
