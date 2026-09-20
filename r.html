@@ -66,6 +66,12 @@
                 } catch (_) { }
 
                 if (!/^https?:\/\//i.test(url || '')) throw new Error('URL inválida');
+
+                // Registra o clique só se o link existe; keepalive deixa o request terminar após o redirect
+                try {
+                    fetch(API + encodeURIComponent(slug) + '/clique', { method: 'POST', keepalive: true }).catch(() => { });
+                } catch (_) { }
+
                 location.replace(url);
             } catch (e) {
                 fail();
