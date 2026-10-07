@@ -783,7 +783,9 @@
     </div>
 
     <script>
-        // Registra o clique nos botões do WhatsApp no Pixel, sem forçar redirecionamento automático.
+        // Registra o clique nos botões do WhatsApp no Pixel como 'Contact', sem forçar redirecionamento automático.
+        // O 'Lead' é enviado pelo bot (API de Conversões) quando a pessoa realmente entra no grupo;
+        // disparar 'Lead' aqui também faria cada pessoa contar duas vezes.
         // O redirecionamento automático anterior falhava silenciosamente em navegadores in-app
         // (como o do Instagram) porque exigem um toque do usuário para abrir outro app —
         // por isso os botões são sempre a única forma de entrar, e sempre funcionam.
@@ -792,7 +794,7 @@
             if (el) {
                 el.addEventListener('click', function () {
                     if (typeof fbq === 'function') {
-                        fbq('track', 'Lead');
+                        fbq('track', 'Contact');
                     }
                 });
             }
